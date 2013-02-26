@@ -21,7 +21,7 @@ saveRow() function:
 
     public function saveRow()
     {
-        $this->fields->id_sectorinversion->setValue($this->option_group->getNewValue());
+        $this->fields->your_field->setValue($this->option_group->getNewValue());
         parent::saveRow();
         /***/
     }

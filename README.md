@@ -1,4 +1,27 @@
-P4AOptionGroup
+P4A Option Group
 ==============
+Example of this widget:
 
-P4AOptionGroup
+<img src="http://daniel.carrero.cl/images/P4AOptionGroup.jpg" />
+
+
+Use
+==============
+        $this->build("OptionGroup", "option_group")
+                ->setLabel("Label for your Option Group")
+                ->setSource($this->p4a_source)
+                ->setSourceDescriptionField('field_description')
+                ->setSourceValueField('id_field')
+                ->setSourceParentField("parent_id")
+                ->setValue($this->fields->id_field->getValue())
+                ->setStyleProperty("width", "220px")
+                ->label->setWidth(120);
+                
+saveRow() function:
+
+    public function saveRow()
+    {
+        $this->fields->id_sectorinversion->setValue($this->option_group->getNewValue());
+        parent::saveRow();
+        /***/
+    }

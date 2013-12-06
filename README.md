@@ -7,7 +7,7 @@ Example of this widget:
 
 Use
 ==============
-        $this->build("OptionGroup", "option_group")
+        $this->build("P4A_OptionGroup_Field", "option_group")
                 ->setLabel("Label for your Option Group")
                 ->setSource($this->p4a_source)
                 ->setSourceDescriptionField('field_description')

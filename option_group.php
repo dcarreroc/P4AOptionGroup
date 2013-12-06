@@ -13,19 +13,19 @@
  * insert into opts(name,parent_id) values ('child 3',2);
  * insert into opts(name,parent_id) values ('child 4',2);
  *
- * $this->build("OptionGroup","optGroup")
+ * $this->build("P4A_OptionGroup_Field", "optGroup")
                 ->setLabel("The Label")
                 ->setSource($this->src_p4a_db_source) // a p4a_db_source
                 ->setSourceDescriptionField('field_description')
                 ->setSourceValueField('field_value')
                 ->setSourceParentField("field_parent") // this is the parent id field
-                ->setValue($this->fields->id_sectorinversion->getValue()); // set the value of the field
+                ->setValue($this->fields->your_field->getValue()); // set the value of the field
    To save the field value rewrite the saveRow() function and add the following line:
  *
- * $this->fields->your_field->setValue($this->sector->getNewValue());
+ * $this->fields->your_field->setValue($this->your_field->getNewValue());
  *
  */
-class OptionGroup extends P4A_Field {
+class P4A_OptionGroup_Field extends P4A_Field {
 
     /**
      * The name of the data field for make a parent child relation.
@@ -68,8 +68,19 @@ class OptionGroup extends P4A_Field {
      */
     public function getAsString() {
         $id = $this->getId();
+		if (!$this->isVisible()) {
+			return "<span id='{$id}' class='hidden'></span>" .
+				"<script type='text/javascript' class='parse_before_html_replace'>
+				if (typeof {$id}pre == 'function') {{$id}pre();};
+				</script>";
+		}
 
-        $header = "<select id='{$id}input' ";
+		$css_classes = $this->getCSSClasses();
+		$css_classes[] = "p4a_field";
+		$css_classes[] = "p4a_field_select";
+		$css_classes[] = "p4a_field_{$this->type}";
+
+		$header = "<select id='{$id}input' ";
         $close_header = '>';
         $footer = '</select>';
         $header .= $this->composeStringActions() . $this->composeStringProperties();
@@ -88,6 +99,7 @@ class OptionGroup extends P4A_Field {
         if(is_null($parent_field)){
             trigger_error("parent_field must be set <br />ex: setSourceParentField(\"field_name\")", E_USER_ERROR);
         }
+		
         if ($this->isNullAllowed()) {
             if ($this->null_message === null) {
                 $message = 'None Selected';
@@ -97,17 +109,17 @@ class OptionGroup extends P4A_Field {
 
             $header .= "<option value=''>" . __($message) . "</option>";
         }
+		
+		$sContent = "";
         foreach ($external_data as $key => $current) {
-
-            if ($current[$parent_field] == 0) {
-                $sContent .= "<optgroup label=\"" . htmlspecialchars($current[$description_field]) . "\">\n";
-                next;
+            if (!$current[$parent_field]) {
+                $sContent .= "<optgroup label=\"" . htmlspecialchars($current[$description_field]) . "\">";
             }
+			
             foreach ($external_data as $key2 => $current2) {
                 if ($current2[$parent_field] == $current[$value_field]) {
-
                     if ($current2[$value_field] == $new_value) {
-                        $selected = "selected='selected' style=\"background-color:#E2E7ED;font-weight:bold\"";
+                        $selected = "selected='selected'";
                     } else {
                         $selected = "";
                     }
@@ -117,12 +129,25 @@ class OptionGroup extends P4A_Field {
                     } else {
                         $sContent .= htmlspecialchars($current2[$description_field]);
                     }
-                    $sContent .= "</option>\n";
+                    $sContent .= "</option>";
                 }
             }
         }
         $header .= $sContent;
 
-        return $this->composeLabel() . $header . $footer;
+        $return = $this->composeLabel() . $header . $footer;
+		
+		$error = '';
+		if ($this->_error !== null) {
+			$css_classes[] = 'field_error';
+			$error = "<div class='field_error_msg'>{$this->_error}</div><script type='text/javascript'>\$('#{$id} iframe').mouseover(function () {\$('#{$id} .field_error_msg').show()});\$('#{$id}input').mouseover(function () {\$('#{$id} .field_error_msg').show()}).mouseout(function () {\$('#{$id} .field_error_msg').hide()});</script>";
+			$this->_error = null;
+		}
+		
+		$visualized_data_type = $this->getVisualizedDataType();
+		if ($visualized_data_type) $css_classes[] = "p4a_field_data_$visualized_data_type";
+		
+		$css_classes = join(' ', $css_classes);
+		return "<div id='{$id}' class='$css_classes'>{$return}{$error}</div>";
     }
 }
